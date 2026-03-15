@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>れんげの家 カルタ</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      background: linear-gradient(135deg, #fef9e7 0%, #f5e6c8 100%);
+      color: #2c1810;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      color: #5c3d2e;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: clamp(0.95rem, 3vw, 1.1rem);
+      color: #7d5a4a;
+      margin-bottom: 1.5rem;
+    }
+
+    /* スタート画面 */
+    .start-screen {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .start-screen p {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      margin-bottom: 2rem;
+      line-height: 1.7;
+    }
+    .btn-big {
+      display: inline-block;
+      padding: 1rem 3rem;
+      font-size: clamp(1.3rem, 4vw, 1.8rem);
+      font-weight: bold;
+      background: #8b4513;
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(139,69,19,.35);
+    }
+    .btn-big:hover, .btn-big:focus {
+      background: #a0522d;
+      transform: scale(1.02);
+    }
+    .btn-big:active { transform: scale(0.98); }
+
+    /* 読み札エリア */
+    .yomifuda-area {
+      background: #fff;
+      border: 4px solid #8b4513;
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .yomifuda-label {
+      font-size: 1rem;
+      color: #7d5a4a;
+      margin: 0 0 0.5rem 0;
+    }
+    .yomifuda-text {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: bold;
+      line-height: 1.6;
+      color: #2c1810;
+    }
+
+    .prompt-text {
+      font-size: clamp(1.1rem, 3vw, 1.3rem);
+      color: #5c3d2e;
+      margin: 1rem 0 0.5rem 0;
+      font-weight: bold;
+    }
+    .voice-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 0.5rem 0 1rem 0;
+    }
+    .btn-mic {
+      padding: 1rem 2rem;
+      font-size: clamp(1.1rem, 3vw, 1.3rem);
+      font-weight: bold;
+      background: #2d5a27;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(45,90,39,.3);
+    }
+    .btn-mic:hover { background: #3d6b35; }
+    .btn-mic:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-mic.listening { background: #8b3a3a; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.85; } }
+    .mic-status {
+      font-size: 1rem;
+      color: #5c3d2e;
+    }
+    .hint-row {
+      margin: 1.25rem 0 0.5rem 0;
+    }
+    .btn-hint {
+      padding: 0.9rem 1.8rem;
+      font-size: clamp(1.05rem, 3vw, 1.25rem);
+      font-weight: bold;
+      background: #7d5a4a;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(125,90,74,.3);
+    }
+    .btn-hint:hover { background: #8b6b5b; }
+    .btn-hint:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-hint.revealed { background: #5c6b5c; }
+    .hint-area {
+      margin-top: 1rem;
+    }
+    .hint-area .or-divider {
+      margin-top: 0;
+    }
+    .or-divider {
+      font-size: 1rem;
+      color: #7d5a4a;
+      margin: 1rem 0 0.5rem 0;
+    }
+
+    /* 読み上げボタン */
+    .read-aloud-btn {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1.1rem;
+      background: #5c3d2e;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .read-aloud-btn:hover { background: #7d5a4a; }
+
+    /* 取り札グリッド */
+    .torifuda-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .torifuda-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80px;
+      padding: 1rem 1.25rem;
+      background: #fff;
+      border: 4px solid #8b4513;
+      border-radius: 16px;
+      font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+      font-weight: bold;
+      color: #2c1810;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .torifuda-card:hover {
+      background: #fef9e7;
+      transform: scale(1.05);
+    }
+    .torifuda-card:active { transform: scale(0.98); }
+    .torifuda-card.correct {
+      background: #2d5a27;
+      color: #fff;
+      border-color: #1e3d1a;
+      pointer-events: none;
+    }
+    .torifuda-card.wrong {
+      background: #8b3a3a;
+      color: #fff;
+      border-color: #5c2525;
+      animation: shake 0.4s;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    /* 結果・メッセージ */
+    .message {
+      text-align: center;
+      font-size: clamp(1.2rem, 3vw, 1.6rem);
+      margin-top: 1.5rem;
+      min-height: 2.5rem;
+      font-weight: bold;
+    }
+    .message.correct-msg { color: #2d5a27; }
+    .message.wrong-msg { color: #8b3a3a; }
+
+    /* 次へボタン */
+    .next-btn {
+      display: block;
+      margin: 1.5rem auto 0;
+      padding: 1rem 2.5rem;
+      font-size: 1.3rem;
+      background: #5c3d2e;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .next-btn:hover { background: #7d5a4a; }
+    .next-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ゲーム終了 */
+    .result-screen {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .result-screen h2 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      color: #5c3d2e;
+      margin-bottom: 1rem;
+    }
+    .result-screen .score {
+      font-size: clamp(2rem, 6vw, 3rem);
+      color: #8b4513;
+      margin: 1rem 0;
+    }
+    .result-screen .again {
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>れんげの家</h1>
+    <p class="subtitle">前半を見て、つづき（後半）を言ってね</p>
+
+    <div id="start-screen" class="start-screen">
+      <p>ことわざの<strong>前半</strong>が表示されます。<br><strong>つづき（後半）</strong>を声で言ってね。<br>わからなければ「ヒント」を押すと候補が出るから、その中からタップしてえらべるよ。</p>
+      <button type="button" class="btn-big" id="start-btn">はじめる</button>
+    </div>
+
+    <div id="game-screen" style="display: none;">
+      <div class="yomifuda-area">
+        <div>
+          <p class="yomifuda-label">前半</p>
+          <p class="yomifuda-text" id="yomifuda-text"></p>
+          <button type="button" class="read-aloud-btn" id="read-aloud-btn">🔊 前半を読む</button>
+        </div>
+      </div>
+      <p class="prompt-text" id="prompt-text">つづきを言ってね →</p>
+      <div class="voice-row">
+        <button type="button" class="btn-mic" id="mic-btn">🎤 マイクで答える</button>
+        <span class="mic-status" id="mic-status"></span>
+      </div>
+      <div class="hint-row">
+        <button type="button" class="btn-hint" id="hint-btn">💡 ヒント（候補を見る）</button>
+      </div>
+      <div class="hint-area" id="hint-area" style="display: none;">
+        <p class="or-divider">候補からえらんでタップ</p>
+        <div class="torifuda-grid" id="torifuda-grid"></div>
+      </div>
+      <p class="message" id="message"></p>
+      <button type="button" class="next-btn" id="next-btn" style="display: none;">つぎへ</button>
+    </div>
+
+    <div id="result-screen" class="result-screen" style="display: none;">
+      <h2>おつかれさまでした</h2>
+      <p class="score" id="final-score"></p>
+      <p>また遊んでね。</p>
+      <button type="button" class="btn-big again" id="again-btn">もういちどあそぶ</button>
+    </div>
+  </div>
+
+  <script>
+    // ことわざ ＋ 百人一首（上の句 → 下の句を言う）
+    const KARUTA_DATA = [
+      // ことわざ
+      { kami: '犬も歩けば', shimo: '棒に当たる' },
+      { kami: '論より', shimo: '証拠' },
+      { kami: '花より', shimo: '団子' },
+      { kami: '二度あることは', shimo: '三度ある' },
+      { kami: '仏の顔も', shimo: '三度' },
+      { kami: '千里の道も', shimo: '一歩から' },
+      { kami: '好きこそ', shimo: '物の上手なれ' },
+      { kami: 'ちりも積もれば', shimo: '山となる' },
+      { kami: '聞くは一時の恥、', shimo: '聞かぬは一生の恥' },
+      { kami: '石の上にも', shimo: '三年' },
+      { kami: '急がば', shimo: '回れ' },
+      { kami: '年寄りの', shimo: '冷や水' },
+      { kami: '知らぬが', shimo: '仏' },
+      { kami: '縁の下の', shimo: '力持ち' },
+      { kami: '良薬は', shimo: '口に苦し' },
+      { kami: '旅は道連れ', shimo: '世は情け' },
+      { kami: '時は', shimo: '金なり' },
+      { kami: '捕らぬ狸の', shimo: '皮算用' },
+      { kami: '三人寄れば', shimo: '文殊の知恵' },
+      { kami: '案ずるより', shimo: '産むがやすし' },
+      // 百人一首
+      { kami: '秋の田の かりほの庵の 苫をあらみ', shimo: 'わが衣手は 露にぬれつつ' },
+      { kami: '春過ぎて 夏来にけらし 白妙の', shimo: '衣ほすてふ 天の香具山' },
+      { kami: 'あしびきの 山鳥の尾の しだり尾の', shimo: 'ながながし夜を ひとりかも寝む' },
+      { kami: '田子の浦に うち出でて見れば 白妙の', shimo: '富士の高嶺に 雪は降りつつ' },
+      { kami: '奥山に もみぢ踏み分け 鳴く鹿の', shimo: '声聞く時ぞ 秋は悲しき' },
+      { kami: 'かささぎの 渡せる橋に おく霜の', shimo: '白きを見れば 夜ぞふけにける' },
+      { kami: '天の原 ふりさけ見れば 春日なる', shimo: '三笠の山に 出でし月かも' },
+      { kami: 'わが庵は 都のたつみ しかぞすむ', shimo: '世をうぢ山と 人はいふなり' },
+      { kami: '花の色は うつりにけりな いたづらに', shimo: 'わが身世にふる ながめせし間に' },
+      { kami: 'これやこの 行くも帰るも わかれては', shimo: '知るも知らぬも あふ坂の関' },
+      { kami: 'わたの原 八十島かけて こぎ出でぬと', shimo: '人にはつげよ あまのつり舟' },
+      { kami: '天つ風 雲の通ひ路 吹き閉ぢよ', shimo: 'をとめの姿 しばしとどめむ' },
+      { kami: 'つくばねの 峰より落つる みなの川', shimo: '恋ぞつもりて 淵となりぬる' },
+      { kami: 'みちのくの しのぶもぢずり たれゆゑに', shimo: '乱れそめにし 我ならなくに' },
+      { kami: '君がため 春の野にいでて 若菜つむ', shimo: 'わが衣手に 雪は降りつつ' },
+      { kami: '立ち別れ いなばの山の 峰に生ふる', shimo: 'まつとし聞かば 今かへりこむ' },
+      { kami: 'ちはやぶる 神代も聞かず 竜田川', shimo: 'からくれなゐに 水くくるとは' },
+      { kami: 'すみの江の 岸による波 よるさへや', shimo: '夢の通ひ路 人目よくらむ' },
+      { kami: 'なにはがた 短き葦の ふしのまも', shimo: 'あはでこの世を 過ぐしてよとや' },
+      { kami: 'わびぬれば 今はた同じ なにはなる', shimo: 'みをつくしても あはむとぞ思ふ' },
+      { kami: '今来むと いひしばかりに 長月の', shimo: '有明の月を 待ちいでつるかな' },
+      { kami: '吹くからに 秋の草木の しをるれば', shimo: 'むべ山風を 嵐といふらむ' },
+      { kami: '月見れば ちぢにものこそ 悲しけれ', shimo: 'わが身一つの 秋にはあらねど' },
+      { kami: 'このたびは ぬさもとりあへず 手向山', shimo: '紅葉の錦 神のまにまに' },
+      { kami: '名にし負はば 逢坂山の さねかづら', shimo: '人に知られで くるよしもがな' },
+      { kami: '小倉山 峰のもみぢ葉 心あらば', shimo: '今ひとたびの みゆき待たなむ' },
+      { kami: 'みかの原 わきて流るる いづみ川', shimo: 'いつ見きとてか 恋しかるらむ' },
+      { kami: '山里は 冬ぞさびしさ まさりける', shimo: '人目も草も かれぬと思へば' },
+      { kami: '心あてに 折らばや折らむ 初霜の', shimo: 'おきまどはせる 白菊の花' },
+      { kami: '有明の つれなく見えし 別れより', shimo: '暁ばかり うきものはなし' },
+      { kami: '朝ぼらけ 有明の月と 見るまでに', shimo: '吉野の里に 降れる白雪' },
+      { kami: '山川に 風のかけたる しがらみは', shimo: '流れもあへぬ 紅葉なりけり' },
+      { kami: 'ひさかたの 光のどけき 春の日に', shimo: 'しづ心なく 花の散るらむ' },
+      { kami: '誰をかも 知る人にせむ 高砂の', shimo: '松も昔の 友ならなくに' },
+      { kami: '人はいさ 心も知らず ふるさとは', shimo: '花ぞ昔の 香ににほひける' },
+      { kami: '夏の夜は まだ宵ながら 明けぬるを', shimo: '雲のいづこに 月やどるらむ' },
+      { kami: '白露に 風の吹きしく 秋の野は', shimo: 'つらぬきとめぬ 玉ぞ散りける' },
+      { kami: '忘らるる 身をば思はず ちかべてし', shimo: '人の命の 惜しくもあるかな' },
+      { kami: '浅茅生の 小野の篠原 しのぶれど', shimo: 'あまりてなどか 人の恋しき' },
+      { kami: 'しのぶれど 色に出でにけり わが恋は', shimo: 'ものやおもふと 人のとふまで' },
+      { kami: '恋すてふ わが名はまだき 立ちにけり', shimo: '人知れずこそ 思ひそめしか' },
+      { kami: 'ちぎりきな かたみに袖を しぼりつつ', shimo: '末の松山 波こさじとは' },
+      { kami: 'あひ見ての のちの心に くらぶれば', shimo: '昔はものを 思はざりけり' },
+      { kami: 'あふことの 絶えてしなくは なかなかに', shimo: '人をも身をも 恨みざらまし' },
+      { kami: 'あはれとも いふべき人は 思ほえで', shimo: '身のいたづらに なりぬべきかな' },
+      { kami: '由良のとを 渡る舟人 かぢを絶え', shimo: 'ゆくへも知らぬ 恋の道かな' },
+      { kami: '八重むぐら 茂れる宿の さびしきに', shimo: '人こそ見えね 秋は来にけり' },
+      { kami: '風をいたみ 岩うつ波の おのれのみ', shimo: 'くだけてものを 思ふころかな' },
+      { kami: 'み垣もり 衛士のたく火の 夜はもえて', shimo: '昼は消えつつ ものをこそ思へ' },
+      { kami: '君がため 惜しからざりし いのちさへ', shimo: '長くもがなと 思ひけるかな' },
+      { kami: '憂かりける 人を初瀬の 山おろしよ', shimo: 'はげしかれとは 祈らぬものを' },
+      { kami: '安倍の野の 露霜消えにし 我が身かな', shimo: 'つれなき人の あと追ひにして' },
+      { kami: 'あらざらむ この世のほかの 思ひ出に', shimo: '今ひとたびの あふこともがな' },
+      { kami: 'めぐりあひて 見しやそれとも わかぬ間に', shimo: '雲がくれにし 夜半の月かな' },
+      { kami: '有馬山 猪名の笹原 風吹けば', shimo: 'いでそよ人を 忘れやはする' },
+      { kami: 'やすらはで 寝なましものを さ夜更けて', shimo: '傾くまでの 月を見しかな' },
+      { kami: '大江山 いく野の道の 遠ければ', shimo: 'まだふみも見ず 天の橋立' },
+      { kami: 'いにしへに 恋ふる鳥は 霍公鳥', shimo: 'よのなかに鳴く 我がごとくは' },
+      { kami: '夜をこめて 鳥の空音は はかるとも', shimo: 'よに逢坂の 関は許さじ' },
+      { kami: '今はただ 思ひ絶えなむ とばかりを', shimo: '人づてならで いふよしもがな' },
+      { kami: '朝ぼらけ 宇治の川霧 たえだえに', shimo: 'あらはれわたる 瀬々の網代木' },
+      { kami: '恨みわび ほさぬ袖だに あるものを', shimo: '恋に朽ちなむ 名こそ惜しけれ' },
+      { kami: 'もろともに あはれと思へ 山桜', shimo: '花よりほかに 知る人もなし' },
+      { kami: '春の夜の 夢ばかりなる 手枕に', shimo: 'かひなく立たむ 名こそ惜しけれ' },
+      { kami: '心にを わが思ふ人は ありといへど', shimo: '見えぬがごとく なりにけるかな' },
+      { kami: 'あらし吹く 三室の山の もみぢ葉は', shimo: '龍田の錦 神のまにまに' },
+      { kami: '寂しさに 宿を立ち出でて ながむれば', shimo: 'いづこも同じ 秋の夕暮' },
+      { kami: '夕されば 門田の稲葉 おとづれて', shimo: 'あしのまろやに 秋風ぞ吹く' },
+      { kami: '音に聞く 高師の浜の あだ波は', shimo: 'かけじや袖の ぬれもこそすれ' },
+      { kami: '高砂の 尾の上の桜 咲きにけり', shimo: '外山の霞 立たずもあらなむ' },
+      { kami: 'おほけなく うき世の民に おほふかな', shimo: 'わが立つ杣に 墨染の袖' },
+      { kami: '花さそふ 嵐の庭の 雪ならで', shimo: 'ふりゆくものは わが身なりけり' },
+      { kami: '来ぬ人を まつほの浦の 夕なぎに', shimo: '焼くや藻塩の 身もこがれつつ' },
+      { kami: '風そよぐ ならの小川の 夕暮は', shimo: 'みそぎぞ夏の しるしなりける' },
+      { kami: '人も愛し 人も恨めし あぢきなく', shimo: '世を思ふゆゑに 物思ふ身は' },
+      { kami: '御法の 三室の山も 紅葉せば', shimo: '一むらのみ 錦なりけり' },
+      { kami: '夕日の さして山の端 いと近う', shimo: 'なりたるほどに 紫だちたる' },
+      { kami: '朝に日に 匂ふ山吹の 花なれば', shimo: '風のまにまに 身もこがれつつ' },
+      { kami: '捨てがたく 惜しきものから 世の中は', shimo: 'かくぞあるべき としも経にけり' },
+      { kami: '滝の音は 絶えて久しく なりぬれど', shimo: '名こそ流れて なほ聞こえけれ' },
+      { kami: 'なげけとて 月やはものを 思ふべき', shimo: 'かこちがほなる わが涙かな' },
+      { kami: '村雨の 露もまだひぬ まきの葉に', shimo: '霧立ちのぼる 秋の夕暮' },
+      { kami: '難波江の 芦のかりねの ひとよゆゑ', shimo: 'みをつくしてや 恋ひわたるべき' },
+      { kami: '玉の緒よ 絶えなば絶えね ながらへば', shimo: '忍ぶることの 弱りもぞする' },
+      { kami: '見せばやな 雄島のあまの 袖だにも', shimo: 'ぬれにぞぬれし 色はかはらず' },
+      { kami: 'きりぎりす 鳴くや霜夜の さむしろに', shimo: '衣かたしき ひとりかも寝む' },
+      { kami: 'わが袖は 潮干に見えぬ 沖の石の', shimo: '人こそ知らね 乾くまもなし' },
+      { kami: '世の中は 常にもがもな なぎさこぐ', shimo: 'あまの小舟の 綱手かなしも' },
+      { kami: 'み吉野の 山の秋風 さ夜更けて', shimo: 'ふるさと寒く 衣うつなり' },
+      { kami: 'おく山に 紅葉踏み分け 鳴く鹿の', shimo: '声聞く時ぞ 秋は悲しき' },
+    ];
+
+    let deck = [];
+    let currentIndex = 0;
+    let score = 0;
+    let answered = false;
+    let recognition = null;
+
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const yomifudaText = document.getElementById('yomifuda-text');
+    const torifudaGrid = document.getElementById('torifuda-grid');
+    const messageEl = document.getElementById('message');
+    const nextBtn = document.getElementById('next-btn');
+    const readAloudBtn = document.getElementById('read-aloud-btn');
+    const micBtn = document.getElementById('mic-btn');
+    const micStatus = document.getElementById('mic-status');
+    const hintBtn = document.getElementById('hint-btn');
+    const hintArea = document.getElementById('hint-area');
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function normalizeForCompare(s) {
+      return (s || '').replace(/\s/g, '').replace(/、|。/g, '');
+    }
+
+    function isMatchSaid(said, expected) {
+      const a = normalizeForCompare(said);
+      const b = normalizeForCompare(expected);
+      if (a === b) return true;
+      if (a.length >= 2 && b.length >= 2 && (a.includes(b) || b.includes(a))) return true;
+      if (b.length >= 3 && a.length >= 2) {
+        const mid = Math.floor(b.length / 2);
+        if (a.includes(b.slice(0, mid)) || a.includes(b.slice(-mid))) return true;
+      }
+      return false;
+    }
+
+    function startGame() {
+      deck = shuffle(KARUTA_DATA).slice(0, 10);
+      currentIndex = 0;
+      score = 0;
+      startScreen.style.display = 'none';
+      resultScreen.style.display = 'none';
+      gameScreen.style.display = 'block';
+      initSpeech();
+      showQuestion();
+    }
+
+    function initSpeech() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        micBtn.style.display = 'none';
+        return;
+      }
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.onresult = function(e) {
+        const t = (e.results[0] && e.results[0][0]) ? e.results[0][0].transcript : '';
+        micStatus.textContent = '「' + t + '」';
+        checkSpokenAnswer(t);
+      };
+      recognition.onend = function() {
+        micBtn.classList.remove('listening');
+        micBtn.disabled = false;
+        micBtn.textContent = '🎤 マイクで答える';
+      };
+      recognition.onerror = function() {
+        micBtn.classList.remove('listening');
+        micBtn.disabled = false;
+        micBtn.textContent = '🎤 マイクで答える';
+        micStatus.textContent = '聞き取れませんでした。もう一度か、下から選んでね。';
+      };
+    }
+
+    function getShimoChoices(correctShimo) {
+      const others = KARUTA_DATA.map(d => d.shimo).filter(s => s !== correctShimo);
+      const shuffled = shuffle(others);
+      const choices = [correctShimo, ...shuffled.slice(0, 3)].slice(0, 4);
+      return shuffle(choices);
+    }
+
+    function showQuestion() {
+      answered = false;
+      messageEl.textContent = '';
+      messageEl.className = 'message';
+      nextBtn.style.display = 'none';
+      micStatus.textContent = '';
+      hintArea.style.display = 'none';
+      hintBtn.disabled = false;
+      hintBtn.textContent = '💡 ヒント（候補を見る）';
+      hintBtn.classList.remove('revealed');
+
+      const card = deck[currentIndex];
+      yomifudaText.textContent = card.kami;
+
+      const choices = getShimoChoices(card.shimo);
+      torifudaGrid.innerHTML = '';
+      choices.forEach(shimo => {
+        const div = document.createElement('div');
+        div.className = 'torifuda-card';
+        div.textContent = shimo;
+        div.dataset.shimo = shimo;
+        div.addEventListener('click', () => onSelectCard(div, shimo));
+        torifudaGrid.appendChild(div);
+      });
+
+      if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
+        readAloudBtn.style.display = 'inline-block';
+      } else {
+        readAloudBtn.style.display = 'none';
+      }
+    }
+
+    function showHint() {
+      hintArea.style.display = 'block';
+      hintBtn.disabled = true;
+      hintBtn.textContent = '候補を表示しました';
+      hintBtn.classList.add('revealed');
+    }
+
+    function checkSpokenAnswer(said) {
+      if (answered) return;
+      const card = deck[currentIndex];
+      const ok = isMatchSaid(said, card.shimo);
+      setAnswerResult(ok, card.shimo);
+    }
+
+    function setAnswerResult(ok, correctShimo) {
+      answered = true;
+      const cards = torifudaGrid.querySelectorAll('.torifuda-card');
+      cards.forEach(c => {
+        c.style.pointerEvents = 'none';
+        if (c.dataset.shimo === correctShimo) c.classList.add('correct');
+        else c.classList.remove('wrong');
+      });
+
+      if (ok) {
+        score++;
+        messageEl.textContent = '〇 正解！ よく言えたね！';
+        messageEl.className = 'message correct-msg';
+      } else {
+        messageEl.textContent = '× 正解は「' + correctShimo + '」でした。またつぎで言ってみてね。';
+        messageEl.className = 'message wrong-msg';
+      }
+      nextBtn.style.display = 'block';
+    }
+
+    function onSelectCard(el, selected) {
+      if (answered) return;
+      answered = true;
+
+      const correct = deck[currentIndex].shimo;
+      const cards = torifudaGrid.querySelectorAll('.torifuda-card');
+      cards.forEach(c => {
+        c.style.pointerEvents = 'none';
+        if (c.dataset.shimo === correct) c.classList.add('correct');
+        else if (c === el) c.classList.add('wrong');
+      });
+
+      if (selected === correct) {
+        score++;
+        messageEl.textContent = '〇 正解！';
+        messageEl.className = 'message correct-msg';
+      } else {
+        messageEl.textContent = '× 正解は「' + correct + '」でした';
+        messageEl.className = 'message wrong-msg';
+      }
+      nextBtn.style.display = 'block';
+    }
+
+    function startListening() {
+      if (!recognition || answered) return;
+      micBtn.classList.add('listening');
+      micBtn.disabled = true;
+      micBtn.textContent = '🎤 きいてます…';
+      micStatus.textContent = 'つづきを言ってね';
+      try {
+        recognition.start();
+      } catch (e) {
+        micBtn.classList.remove('listening');
+        micBtn.disabled = false;
+        micBtn.textContent = '🎤 マイクで答える';
+      }
+    }
+
+    function nextQuestion() {
+      currentIndex++;
+      if (currentIndex >= deck.length) {
+        gameScreen.style.display = 'none';
+        resultScreen.style.display = 'block';
+        document.getElementById('final-score').textContent =
+          score + ' / ' + deck.length + ' 問 正解！';
+        return;
+      }
+      showQuestion();
+    }
+
+    function readAloud() {
+      const text = deck[currentIndex].kami;
+      if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP';
+      u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+    }
+
+    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('next-btn').addEventListener('click', nextQuestion);
+    document.getElementById('again-btn').addEventListener('click', startGame);
+    readAloudBtn.addEventListener('click', readAloud);
+    micBtn.addEventListener('click', startListening);
+    hintBtn.addEventListener('click', showHint);
+  </script>
+</body>
+</html>
